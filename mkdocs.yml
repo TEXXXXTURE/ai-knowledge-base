@@ -218,26 +218,34 @@ nav:
       - 命令行: 词条/06-IT行业/基础设施/命令行.md
       - 数据库: 词条/06-IT行业/基础设施/数据库.md
     - 框架与库:
-      - Diffusers库: 词条/06-IT行业/框架与库/Diffusers库.md
-      - Electron: 词条/06-IT行业/框架与库/Electron.md
-      - FastAPI: 词条/06-IT行业/框架与库/FastAPI.md
-      - Gradio: 词条/06-IT行业/框架与库/Gradio.md
-      - JAX: 词条/06-IT行业/框架与库/JAX.md
-      - LangChain: 词条/06-IT行业/框架与库/LangChain.md
-      - LlamaIndex: 词条/06-IT行业/框架与库/LlamaIndex.md
-      - Next.js: 词条/06-IT行业/框架与库/Next.js.md
-      - Node.js: 词条/06-IT行业/框架与库/Node.js.md
-      - NumPy: 词条/06-IT行业/框架与库/NumPy.md
-      - ONNX: 词条/06-IT行业/框架与库/ONNX.md
-      - Pandas: 词条/06-IT行业/框架与库/Pandas.md
-      - PyTorch: 词条/06-IT行业/框架与库/PyTorch.md
-      - React: 词条/06-IT行业/框架与库/React.md
-      - Streamlit: 词条/06-IT行业/框架与库/Streamlit.md
-      - TensorFlow: 词条/06-IT行业/框架与库/TensorFlow.md
-      - Transformers库: 词条/06-IT行业/框架与库/Transformers库.md
-      - Vue: 词条/06-IT行业/框架与库/Vue.md
-      - llama.cpp: 词条/06-IT行业/框架与库/llama.cpp.md
-      - vLLM: 词条/06-IT行业/框架与库/vLLM.md
+          - AntDesign: 词条/06-IT行业/框架与库/AntDesign.md
+          - Astro: 词条/06-IT行业/框架与库/Astro.md
+          - Diffusers库: 词条/06-IT行业/框架与库/Diffusers库.md
+          - Electron: 词条/06-IT行业/框架与库/Electron.md
+          - FastAPI: 词条/06-IT行业/框架与库/FastAPI.md
+          - Gradio: 词条/06-IT行业/框架与库/Gradio.md
+          - JAX: 词条/06-IT行业/框架与库/JAX.md
+          - LangChain: 词条/06-IT行业/框架与库/LangChain.md
+          - LlamaIndex: 词条/06-IT行业/框架与库/LlamaIndex.md
+          - NaiveUI: 词条/06-IT行业/框架与库/NaiveUI.md
+          - Next.js: 词条/06-IT行业/框架与库/Next.js.md
+          - Node.js: 词条/06-IT行业/框架与库/Node.js.md
+          - NumPy: 词条/06-IT行业/框架与库/NumPy.md
+          - ONNX: 词条/06-IT行业/框架与库/ONNX.md
+          - Pandas: 词条/06-IT行业/框架与库/Pandas.md
+          - PyTorch: 词条/06-IT行业/框架与库/PyTorch.md
+          - React: 词条/06-IT行业/框架与库/React.md
+          - Streamlit: 词条/06-IT行业/框架与库/Streamlit.md
+          - Tailwind: 词条/06-IT行业/框架与库/Tailwind.md
+          - Tauri: 词条/06-IT行业/框架与库/Tauri.md
+          - TensorFlow: 词条/06-IT行业/框架与库/TensorFlow.md
+          - Transformers库: 词条/06-IT行业/框架与库/Transformers库.md
+          - Vite: 词条/06-IT行业/框架与库/Vite.md
+          - Vue: 词条/06-IT行业/框架与库/Vue.md
+          - Wails: 词条/06-IT行业/框架与库/Wails.md
+          - shadcn: 词条/06-IT行业/框架与库/shadcn.md
+          - llama.cpp: 词条/06-IT行业/框架与库/llama.cpp.md
+          - vLLM: 词条/06-IT行业/框架与库/vLLM.md
   - 项目文档:
     - CONTENT-SPEC: 项目文档/CONTENT-SPEC.md
     - CONTRIBUTING: 项目文档/CONTRIBUTING.md

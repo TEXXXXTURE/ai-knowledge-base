@@ -132,6 +132,37 @@
 
 ## 六、计算机基础（IT 行业）
 
+### 框架与库
+
+- [稳定] [AntDesign](../词条/06-IT行业/框架与库/AntDesign.md) · 工具 🆕
+- [热词] [Astro](../词条/06-IT行业/框架与库/Astro.md) · 工具 🆕
+- [稳定] [Diffusers库](../词条/06-IT行业/框架与库/Diffusers库.md) · 工具
+- [热词] [Electron](../词条/06-IT行业/框架与库/Electron.md) · 工具
+- [稳定] [FastAPI](../词条/06-IT行业/框架与库/FastAPI.md) · 工具
+- [热词] [Gradio](../词条/06-IT行业/框架与库/Gradio.md) · 工具
+- [稳定] [JAX](../词条/06-IT行业/框架与库/JAX.md) · 工具
+- [热词] [LangChain](../词条/06-IT行业/框架与库/LangChain.md) · 工具
+- [稳定] [LlamaIndex](../词条/06-IT行业/框架与库/LlamaIndex.md) · 工具
+- [热词] [NaiveUI](../词条/06-IT行业/框架与库/NaiveUI.md) · 工具 🆕
+- [热词] [Next.js](../词条/06-IT行业/框架与库/Next.js.md) · 工具
+- [稳定] [Node.js](../词条/06-IT行业/框架与库/Node.js.md) · 工具
+- [稳定] [NumPy](../词条/06-IT行业/框架与库/NumPy.md) · 工具
+- [稳定] [ONNX](../词条/06-IT行业/框架与库/ONNX.md) · 工具
+- [稳定] [Pandas](../词条/06-IT行业/框架与库/Pandas.md) · 工具
+- [稳定] [PyTorch](../词条/06-IT行业/框架与库/PyTorch.md) · 工具
+- [热词] [React](../词条/06-IT行业/框架与库/React.md) · 工具
+- [热词] [Streamlit](../词条/06-IT行业/框架与库/Streamlit.md) · 工具
+- [稳定] [Tailwind](../词条/06-IT行业/框架与库/Tailwind.md) · 工具 🆕
+- [热词] [Tauri](../词条/06-IT行业/框架与库/Tauri.md) · 工具 🆕
+- [稳定] [TensorFlow](../词条/06-IT行业/框架与库/TensorFlow.md) · 工具
+- [稳定] [Transformers库](../词条/06-IT行业/框架与库/Transformers库.md) · 工具
+- [稳定] [Vite](../词条/06-IT行业/框架与库/Vite.md) · 工具 🆕
+- [热词] [Vue](../词条/06-IT行业/框架与库/Vue.md) · 工具
+- [热词] [Wails](../词条/06-IT行业/框架与库/Wails.md) · 工具 🆕
+- [热词] [shadcn](../词条/06-IT行业/框架与库/shadcn.md) · 工具 🆕
+- [稳定] [llama.cpp](../词条/06-IT行业/框架与库/llama.cpp.md) · 工具
+- [热词] [vLLM](../词条/06-IT行业/框架与库/vLLM.md) · 推理
+
 
 ## 本批新增（🆕 2026-08-17）
 
@@ -159,3 +190,16 @@
 - **ComfyUI 工作流专题**：节点、KSampler、Loaders 系列实操词条
 
 > 想加词条？直接按 `docs/词条/` 下对应目录新建 `.md`，填好 frontmatter 的 `relations`（target 必须指向已存在词条或本批待建清单），再补进上方 `mkdocs.yml` 的 nav 与本图即可。
+
+## 本批新增（🆕 2026-08-23 · 前端框架）
+
+基于 TabTin 产品拆解（07-拆解报告），补充"AI 时代前端标准配方"相关的框架与库词条，织入已有 React/Vue/Electron/Next.js 关系网：
+
+- [Tailwind](../词条/06-IT行业/框架与库/Tailwind.md) — 原子化 CSS，AI 生成前端的事实标准
+- [shadcn](../词条/06-IT行业/框架与库/shadcn.md) — 复制粘贴式组件库，AI SaaS 三件套之一
+- [Vite](../词条/06-IT行业/框架与库/Vite.md) — 前端构建工具事实标准（electron-vite）
+- [Tauri](../词条/06-IT行业/框架与库/Tauri.md) — Electron 的轻量替代（Rust 后端）
+- [Wails](../词条/06-IT行业/框架与库/Wails.md) — 轻量桌面框架（Go 后端）
+- [AntDesign](../词条/06-IT行业/框架与库/AntDesign.md) — React 企业级组件库
+- [NaiveUI](../词条/06-IT行业/框架与库/NaiveUI.md) — Vue 3 组件库
+- [Astro](../词条/06-IT行业/框架与库/Astro.md) — 内容站/文档站框架
