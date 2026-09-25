@@ -189,7 +189,7 @@
 - **生态补齐**：更多模型厂商与模型家族（如 SD3、Hunyuan、Sora 类视频模型）
 - **ComfyUI 工作流专题**：节点、KSampler、Loaders 系列实操词条
 
-> 想加词条？直接按 `docs/词条/` 下对应目录新建 `.md`，填好 frontmatter 的 `relations`（target 必须指向已存在词条或本批待建清单），再补进上方 `mkdocs.yml` 的 nav 与本图即可。
+> 想加词条？直接按 `docs/词条/` 下对应目录新建 `.md`，填好 frontmatter 的 `relations`（target 必须指向已存在词条或本批待建清单）即可 —— 导航树与首页栏目会自动长出来，不需要手工登记。提交前跑一遍 `python scripts/validate_content.py`。
 
 ## 本批新增（🆕 2026-08-23 · 前端框架）
 

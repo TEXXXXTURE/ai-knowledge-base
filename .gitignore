@@ -1,6 +1,3 @@
-# MkDocs 构建产物（历史遗留，Astro 启用后可删）
-site/
-
 # Node / Astro
 node_modules/
 dist/

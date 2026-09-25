@@ -176,13 +176,22 @@ const pageDesc =
 
         panel.innerHTML = hits.length
           ? hits
-              .map(
-                (r) =>
+              .map((r) => {
+                // m 有三种来源：词条的 hot/stable、工具的 verified、日报的空值。
+                // 各自给一个前缀标记，标不出意义的不硬标。
+                const mark =
+                  r.m === 'hot'
+                    ? '<span style="color:var(--accent)">◇</span> '
+                    : r.m === 'verified'
+                      ? '<span style="color:var(--accent)">✓</span> '
+                      : '';
+                return (
                   `<a href="${r.u}">` +
-                  `<span>${r.m === 'hot' ? '<span style="color:var(--accent)">◇</span> ' : ''}${esc(r.t)}</span>` +
+                  `<span>${mark}${esc(r.t)}</span>` +
                   `<span class="rn">${esc(r.f)}</span>` +
-                  `<span class="rc">${esc(r.c)}</span></a>`,
-              )
+                  `<span class="rc">${esc(r.c)}</span></a>`
+                );
+              })
               .join('')
           : `<a href="${base}/search/?q=${encodeURIComponent(v)}"><span>在正文中搜索「${esc(v)}」</span><span class="rc">全文</span></a>`;
         panel.hidden = false;
