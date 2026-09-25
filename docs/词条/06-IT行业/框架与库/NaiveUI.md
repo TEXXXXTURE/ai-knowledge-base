@@ -14,7 +14,7 @@ sources:
 relations:
   - target: Vue
     note: Vue 3 生态的主流组件库之一
-  - target: AntDesign
+  - target: Ant Design
     note: 常拿来对比的组件库，Naive UI 更轻更现代
   - target: shadcn
     note: 另一个可选的组件方案，shadcn 走复制粘贴，Naive UI 走开箱即用

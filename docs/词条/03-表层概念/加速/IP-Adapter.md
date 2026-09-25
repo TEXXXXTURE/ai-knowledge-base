@@ -20,7 +20,7 @@ relations:
     note: 语义层面的风格迁移可与风格模型叠加使用
   - target: 扩散模型
     note: IP-Adapter 在扩散模型去噪过程中注入图像条件，不改权重
-  - target: TextualInversion
+  - target: Textual Inversion
     note: 同属「不动模型权重」的轻量语义注入路线
   - type: contrast
     target: ControlNet

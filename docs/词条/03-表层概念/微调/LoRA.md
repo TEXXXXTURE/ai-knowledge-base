@@ -22,7 +22,7 @@ relations:
     target: 风格模型
     note: 风格模型大多靠 LoRA 实现，也可做全量 checkpoint
   - type: contrast
-    target: TextualInversion
+    target: Textual Inversion
     note: 常被对比的另一种轻量个性化方案，LoRA 学「怎么画」
 created: 2026-08-14
 updated: 2026-08-14

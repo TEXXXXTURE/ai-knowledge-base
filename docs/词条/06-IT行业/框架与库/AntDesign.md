@@ -14,7 +14,7 @@ sources:
 relations:
   - target: React
     note: React 生态最老牌的企业级组件库
-  - target: NaiveUI
+  - target: Naive UI
     note: 另一个组件库选择，AntD 更重更全，Naive UI 更轻
   - target: shadcn
     note: 新一代组件方案，shadcn 走可定制路线，AntD 走开箱即用

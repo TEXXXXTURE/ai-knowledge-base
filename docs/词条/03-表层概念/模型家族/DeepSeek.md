@@ -1,5 +1,5 @@
 ---
-term: DeepSeek
+term: DeepSeek 系列
 full_name: DeepSeek (深度求索模型家族)
 aliases: [DeepSeek V3, DeepSeek V4, DeepSeek R1]
 category: 模型

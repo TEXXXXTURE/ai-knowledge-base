@@ -16,7 +16,7 @@ relations:
     note: 组件全部用 Tailwind 类构建，样式可定制
   - target: React
     note: 基于 React + Radix UI 的无头组件构建
-  - target: AntDesign
+  - target: Ant Design
     note: 常拿来对比的另一类组件库——shadcn 是复制粘贴模式，AntD 是开箱即用
   - target: Next.js
     note: 官方推荐的 Next.js 搭配，SaaS 产品标配
