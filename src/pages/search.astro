@@ -1,0 +1,77 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { BASE } from '../lib/paths.mjs';
+---
+
+<BaseLayout title="搜索">
+  <div class="crumb"><a href={`${BASE}/`}>首页</a> / 搜索</div>
+
+  <h1 class="big" style="font-size:clamp(26px,3.2vw,34px)">全文搜索</h1>
+  <p class="lede" id="searchStatus">在正文里找，不只是标题。</p>
+
+  <div id="hits"></div>
+</BaseLayout>
+
+<script>
+  const BASE_PATH = document.documentElement.dataset.base ?? '';
+
+  const status = document.getElementById('searchStatus');
+  const hits = document.getElementById('hits');
+  const q = new URLSearchParams(location.search).get('q')?.trim() ?? '';
+  const input = document.getElementById('q') as HTMLInputElement | null;
+  if (input && q) input.value = q;
+
+  const esc = (s: string) =>
+    s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  async function main() {
+    if (!status || !hits) return;
+
+    if (!q) {
+      status.textContent = '输入关键词，或从上方的搜索框开始。';
+      return;
+    }
+
+    status.textContent = `正在搜索「${q}」…`;
+
+    let pagefind: any;
+    try {
+      // 注意：不能写 `import(变量)`。产物里会被 Vite 包成
+      // `__vitePreload(() => import(...), __VITE_PRELOAD__)`，而该占位符在
+      // Astro 的 inline script 里不会被替换，运行时直接 ReferenceError。
+      // 用 new Function 让这段 import 彻底脱离打包器的静态分析。
+      const dynamicImport = new Function('u', 'return import(u)') as (
+        u: string,
+      ) => Promise<any>;
+      pagefind = await dynamicImport(`${BASE_PATH}/pagefind/pagefind.js`);
+      await pagefind.options({ excerptLength: 30 });
+    } catch {
+      status.textContent = `搜索索引不可用（开发模式下正常）。构建后的站点才能全文搜索。`;
+      return;
+    }
+
+    const search = await pagefind.search(q);
+    const rows = await Promise.all(
+      search.results.slice(0, 30).map((r: any) => r.data()),
+    );
+
+    if (rows.length === 0) {
+      status.textContent = `没有找到与「${q}」相关的内容。`;
+      return;
+    }
+
+    status.textContent = `找到 ${search.results.length} 条结果，显示前 ${rows.length} 条。`;
+    hits.innerHTML = rows
+      .map(
+        (r: any) =>
+          `<article class="hit">` +
+          `<h3><a href="${r.url}">${esc(r.meta?.title ?? r.url)}</a></h3>` +
+          `<div class="hu">${esc(r.url)}</div>` +
+          `<p>${r.excerpt}</p>` +
+          `</article>`,
+      )
+      .join('');
+  }
+
+  main();
+</script>

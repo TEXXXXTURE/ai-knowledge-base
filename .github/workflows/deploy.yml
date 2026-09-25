@@ -1,4 +1,4 @@
-name: Deploy MkDocs to GitHub Pages
+name: Deploy Astro site to GitHub Pages
 
 on:
   push:
@@ -20,22 +20,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # 质量门第 2 道（DESIGN-SPEC §7）：Schema 不过就不部署。
+      # 放在最前面是为了快速失败——省掉后面 npm ci 和构建的开销。
+      - name: Validate content schema
+        run: |
+          python3 -m pip install --quiet pyyaml
+          python3 scripts/validate_content.py
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
-          python-version: "3.12"
+          node-version: "22"
+          cache: npm
 
       - name: Install dependencies
-        run: |
-          pip install mkdocs-material mkdocs-mermaid2-plugin
+        run: npm ci
 
+      # astro build 产出 dist，pagefind 随后在其中建立全站搜索索引
       - name: Build site
-        run: mkdocs build
+        run: npm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: dist
 
   deploy:
     environment:

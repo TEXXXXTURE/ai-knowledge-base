@@ -1,0 +1,69 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { buildTree, subgroupOf } from '../../lib/tree';
+import { termUrl } from '../../lib/paths.mjs';
+
+export async function getStaticPaths() {
+  const terms = await getCollection('terms');
+  const keys = [...new Set(terms.map((t) => t.id.split('/')[0]))].sort();
+  return keys.map((group) => ({ params: { group }, props: { group } }));
+}
+
+interface Props {
+  group: string;
+}
+const { group } = Astro.props;
+
+const all = await getCollection('terms');
+const node = buildTree(all).find((g) => g.key === group);
+if (!node) throw new Error(`未知分组: ${group}`);
+
+const flat = node.terms;
+const subs = node.subs;
+---
+
+<BaseLayout title={node.label}>
+  <div class="crumb"><a href="/ai-knowledge-base/">首页</a> / {node.label}</div>
+
+  <div class="kicker">第 {node.num} 层</div>
+  <h1 class="big" style="font-size:clamp(28px,3.4vw,38px)">{node.label}</h1>
+  <p class="lede">
+    共 {node.count} 个词条{node.blurb ? ` · ${node.blurb}` : ''}。
+  </p>
+
+  {flat.length > 0 && (
+    <>
+      <h2 class="block-title" style="border-bottom:1px solid var(--ink)">目录</h2>
+      <div class="rel">
+        {flat.map((t) => (
+          <a class="rel-card t-app" href={termUrl(t.id)}>
+            <span class="rel-type">{t.maturity === 'hot' ? '热词' : '稳定'}</span>
+            <span class="rel-target">{t.term}</span>
+            <span class="rel-note">{t.fullName || t.category}</span>
+          </a>
+        ))}
+      </div>
+    </>
+  )}
+
+  {subs.map((s) => (
+    <>
+      <h2
+        class="block-title"
+        style="border-bottom:0;border-top:1px solid var(--rule);padding-top:1.4rem;margin-top:2.6rem"
+      >
+        {s.name} · {s.terms.length}
+      </h2>
+      <div class="rel">
+        {s.terms.map((t) => (
+          <a class="rel-card t-app" href={termUrl(t.id)}>
+            <span class="rel-type">{t.maturity === 'hot' ? '热词 · 未沉淀' : '稳定 · 已沉淀'}</span>
+            <span class="rel-target">{t.term}</span>
+            <span class="rel-note">{t.fullName || t.category}</span>
+          </a>
+        ))}
+      </div>
+    </>
+  ))}
+</BaseLayout>

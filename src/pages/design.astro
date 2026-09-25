@@ -1,0 +1,691 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { BASE } from '../lib/paths.mjs';
+
+const entries = await getCollection('terms');
+const tools = await getCollection('tools');
+const digests = await getCollection('digests');
+
+const termCount = entries.length;
+const edgeCount = entries.reduce((n, e) => n + e.data.relations.length, 0);
+const sourceCount = entries.reduce((n, e) => n + e.data.sources.length, 0);
+const groups = new Set(entries.map((e) => e.id.split('/')[0])).size;
+const publishedCount = entries.filter((e) => e.data.status === 'published').length;
+const draftCount = termCount - publishedCount;
+
+/** 四根柱子：这个库凭什么立得住 */
+const PILLARS = [
+  ['上限', '内容能多深、多新、多一线', '靠来源层级——每条都有原始链接，不靠二手转述。'],
+  ['标准', '多规范、多可信、多一致', '靠 Schema 校验 + 无源不收录，规则有代码兜底。'],
+  ['生态', '内容产品活着', '靠开放编写——四层贡献模型，读者也能变作者。'],
+  ['信任', '读者凭什么信', '靠 Git 留痕 + 来源标注 + 修订记录，改动可回溯。'],
+] as const;
+
+/** 从写作到发布，四道闸门 */
+const GATES = [
+  ['类型闸门', 'src/content.config.ts', '构建期。zod 校验字段类型与形状，形状不对直接构建失败。'],
+  ['语义闸门', 'scripts/validate_content.py', 'CI 期。查词条名唯一、关系边可解析、published 必须有源、枚举合法。'],
+  ['链接闸门', '_prototype/check_dist_links.py', '构建后。扫全部产物 HTML，站内链接必须零断链。'],
+  ['一致闸门', '飞书往返比对', '同步后。本地与数据层逐字段比对，确认零损耗。'],
+] as const;
+
+/** 连接统一：两条链路的本质差异 */
+const CONN = [
+  ['连什么', '飞书 wiki 空间的文档（docx 块）', '飞书 Base 多维表格的记录'],
+  ['给谁用', '人读', '程序读'],
+  ['数据形态', 'docx 块，有格式、不可查询', '结构化记录，可筛选、可关联'],
+  ['权限', 'docx / drive / wiki —— 无 bitable', '含 bitable，可建表、可写记录'],
+  ['方向', '单向发布', '双向（投稿回流）'],
+  ['定位', '人工阅读副本', '唯一数据层'],
+] as const;
+---
+
+<BaseLayout
+  title="设计说明"
+  description="AI 知识库的设计说明：内容源头、双层结构、数据层拓扑、连接统一与四道校验闸门。"
+>
+  <div class="kicker">设计说明 · DESIGN NOTE</div>
+  <h1 class="big">这个库<br />是怎么长出来的</h1>
+  <p class="lede">
+    一条主线：内容只写一遍，源头只有一处，出口只有一处。剩下的全是机制 —— 谁写、怎么写、写错了谁拦。
+  </p>
+
+  <div class="stats">
+    <div><b>{termCount}</b><span>词条节点</span></div>
+    <div><b>{edgeCount}</b><span>关系边</span></div>
+    <div><b>{sourceCount}</b><span>来源链接</span></div>
+    <div><b>{groups}<small> 层</small></b><span>知识层级</span></div>
+  </div>
+
+  <section class="sec" id="pillars">
+    <h2 class="sec-title">
+      <span class="sn">01</span>四根柱子
+      <span class="sd">标准 / 上限 / 生态 / 信任</span>
+    </h2>
+    <div class="pillars">
+      {PILLARS.map(([name, what, how]) => (
+        <div class="pillar">
+          <div class="p-n">{name}</div>
+          <div class="p-t">{what}</div>
+          <p class="p-d">{how}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="sec" id="map">
+    <h2 class="sec-title">
+      <span class="sn">02</span>结构图
+      <span class="sd">一个源头，两条路径，一个出口</span>
+    </h2>
+
+    <figure class="dgram-wrap">
+      <svg class="dgram" viewBox="0 0 680 462" role="img" aria-labelledby="dg-t dg-d">
+        <title id="dg-t">AI 知识库数据流结构图</title>
+        <desc id="dg-d">
+          本地 Markdown 是唯一内容源头，分两路：构建期由 Astro 生成静态站，同步期由脚本写入飞书 Base 数据层；静态站服务读者，数据层服务 Agent 与投稿者。
+        </desc>
+
+        <defs>
+          <marker
+            id="dg-arw"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M0,0 L10,5 L0,10 Z" class="dg-arw"></path>
+          </marker>
+        </defs>
+
+        <!-- 源头 -->
+        <rect class="dg-src" x="110" y="14" width="460" height="62" rx="6"></rect>
+        <text class="dg-src-t1" x="340" y="40" text-anchor="middle">docs/**/*.md</text>
+        <text class="dg-src-t2" x="340" y="60" text-anchor="middle">
+          内容源头 · 唯一事实源 · Git 留痕
+        </text>
+
+        <!-- 分叉 -->
+        <path class="dg-line" d="M340,76 V96"></path>
+        <path class="dg-line" d="M170,96 H510"></path>
+        <path class="dg-line" d="M170,96 V116" marker-end="url(#dg-arw)"></path>
+        <path class="dg-line" d="M510,96 V116" marker-end="url(#dg-arw)"></path>
+
+        <!-- 两条路径 -->
+        <rect class="dg-box" x="60" y="120" width="220" height="56" rx="5"></rect>
+        <text class="dg-t1" x="170" y="142" text-anchor="middle">构建期 · 静态生成</text>
+        <text class="dg-t3" x="170" y="160" text-anchor="middle">glob loader 逐篇读入</text>
+
+        <rect class="dg-box" x="400" y="120" width="220" height="56" rx="5"></rect>
+        <text class="dg-t1" x="510" y="142" text-anchor="middle">同步期 · 单向推送</text>
+        <text class="dg-t3" x="510" y="160" text-anchor="middle">批量写记录 · 断点续传</text>
+
+        <path class="dg-line" d="M170,176 V202" marker-end="url(#dg-arw)"></path>
+        <path class="dg-line" d="M510,176 V202" marker-end="url(#dg-arw)"></path>
+
+        <!-- 两个产物 -->
+        <rect class="dg-box" x="60" y="206" width="220" height="92" rx="5"></rect>
+        <text class="dg-t1" x="170" y="232" text-anchor="middle">Astro 静态站</text>
+        <path class="dg-rule" d="M78,246 H262"></path>
+        <text class="dg-t2" x="170" y="268" text-anchor="middle">词条 · 分类 · 工具 · 日报</text>
+        <text class="dg-t3" x="170" y="286" text-anchor="middle">Pagefind 全文搜索</text>
+
+        <rect class="dg-hi" x="400" y="206" width="220" height="92" rx="5"></rect>
+        <text class="dg-hi-t1" x="510" y="232" text-anchor="middle">飞书 Base · 数据层</text>
+        <path class="dg-rule" d="M418,246 H602"></path>
+        <text class="dg-t2" x="510" y="268" text-anchor="middle">
+          词条 {termCount} · 关系 {edgeCount}
+        </text>
+        <text class="dg-t3" x="510" y="286" text-anchor="middle">＋ 投稿表（待开放）</text>
+
+        <!-- 汇合 -->
+        <path class="dg-line" d="M170,298 V320"></path>
+        <path class="dg-line" d="M510,298 V320"></path>
+        <path class="dg-line" d="M170,320 H510"></path>
+        <path class="dg-line" d="M340,320 V342" marker-end="url(#dg-arw)"></path>
+
+        <!-- 消费端 -->
+        <rect class="dg-box" x="60" y="346" width="560" height="70" rx="6"></rect>
+        <path class="dg-rule" d="M246.7,358 V404"></path>
+        <path class="dg-rule" d="M433.3,358 V404"></path>
+        <text class="dg-t1" x="153.3" y="376" text-anchor="middle">读者</text>
+        <text class="dg-t3" x="153.3" y="394" text-anchor="middle">浏览器直接看</text>
+        <text class="dg-t1" x="340" y="376" text-anchor="middle">Agent</text>
+        <text class="dg-t3" x="340" y="394" text-anchor="middle">读数据层做检索</text>
+        <text class="dg-t1" x="526.7" y="376" text-anchor="middle">投稿者</text>
+        <text class="dg-t3" x="526.7" y="394" text-anchor="middle">写投稿表等审批</text>
+
+        <text class="dg-cap" x="340" y="444" text-anchor="middle">
+          闭环：投稿通过 → 写回 Markdown。源头始终唯一，数据层始终是镜像。
+        </text>
+      </svg>
+
+      <figcaption class="fig-cap">
+        左路是「读」：构建期把 Markdown 编译成页面。右路是「写」：同步期把同一批内容推成结构化记录，供
+        Agent 与后台使用。两条路都不反向生产内容 —— 内容只在最上面那一个地方诞生。
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="sec" id="layers">
+    <h2 class="sec-title">
+      <span class="sn">03</span>两种粒度
+      <span class="sd">沉淀的，与待沉淀的</span>
+    </h2>
+    <p class="d-p">
+      知识不是一次成型的。有些已经想清楚、能独立成篇；有些还是半句话、一个线索。这里不硬把两者塞进同一层，而是分成两种粒度：
+    </p>
+    <div class="twocol">
+      <div class="tcard">
+        <div class="tc-h">概念库 · 沉淀层</div>
+        <p class="tc-b">
+          成熟词条独立成页，按六大领域归类，通过 relations 连成知识网。当前
+          <b>{publishedCount}</b> 条已发布。<b>有源才收录</b>——每条都能追回原始出处。
+        </p>
+      </div>
+      <div class="tcard">
+        <div class="tc-h">素材层 · 感知层</div>
+        <p class="tc-b">
+          工具拆解、情报日报、社区热词。特点是<b>先记下来，再慢慢转正</b>——允许粗糙、允许存疑，但状态标清楚。
+          当前另有 <b>{draftCount}</b> 条词条处于骨架状态，等细节补齐。
+        </p>
+      </div>
+    </div>
+    <p class="d-note">
+      工具与日报之所以不塞进词条树，是因为它们的证据形态不同 —— 工具带验证状态与推荐度，日报带日期与来源视频。
+      硬塞进词条表会把两边字段都稀释。它们平级并存，靠「关联词条」字段挂回关系网。
+    </p>
+  </section>
+
+  <section class="sec" id="data">
+    <h2 class="sec-title">
+      <span class="sn">04</span>数据层
+      <span class="sd">为什么是三张表</span>
+    </h2>
+    <p class="d-p">
+      网站本身不需要数据库 —— Markdown 加 Git 就是。但当 Agent 要改、外部读者要投稿时，文件就不够用了：
+      没有筛选、没有权限、没有审批流。所以加一层飞书 Base 当<b>数据层</b>，只做三件事：
+    </p>
+
+    <div class="twocol three">
+      <div class="tcard">
+        <div class="tc-h">词条表</div>
+        <p class="tc-b">
+          {termCount} 行 × 15 字段。分类、状态、成熟度是可筛选的单选，日期是真日期类型，正文是长文本。
+        </p>
+      </div>
+      <div class="tcard">
+        <div class="tc-h">关系表</div>
+        <p class="tc-b">
+          {edgeCount} 行 × 7 字段。<b>一行一条边</b>，而不是把关系塞进词条的一个单元格里。
+        </p>
+      </div>
+      <div class="tcard">
+        <div class="tc-h">投稿表</div>
+        <p class="tc-b">
+          外人可写、只有你能审。通过后写回 Markdown，走同一套校验闸门。
+        </p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="co-t">为什么关系必须拆成独立的表</div>
+      <p class="co-b">
+        词条里的 relations 是嵌套对象数组，而多维表格没有嵌套类型。塞进一个单元格存是存得住，但从此<b>查不了图</b> ——
+        问不出「谁是枢纽」「谁是孤岛」「两跳邻居有哪些」。拆成边表之后，这些都是一句话的查询。
+      </p>
+    </div>
+  </section>
+
+  <section class="sec" id="conn">
+    <h2 class="sec-title">
+      <span class="sn">05</span>连接统一
+      <span class="sd">不是合并代码，是唯一出口</span>
+    </h2>
+    <p class="d-p">
+      项目里曾经有两条都叫「连飞书」的链路。它们看着重复，实质连的<b>根本不是同一种东西</b>：
+    </p>
+
+    <div class="prose cmp-wrap">
+      <table>
+        <thead>
+          <tr><th>维度</th><th>旧通道（文档发布）</th><th>新通道（数据层）</th></tr>
+        </thead>
+        <tbody>
+          {CONN.map(([k, a, b]) => (
+            <tr><td><b>{k}</b></td><td>{a}</td><td>{b}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="d-p">
+      一个往纸上印，一个往表里存。<b>强行合并只会把两件事搅成一件。</b>所以统一的不是代码，而是三件事：
+    </p>
+    <ul class="rules">
+      <li><b>源头唯一</b> —— 内容的第一落点只有本地 Markdown。</li>
+      <li><b>出口唯一</b> —— 只有 Base 算数据层，因为只有它可以被查询、被 Agent 调用。文档通道降级为人工阅读副本。</li>
+      <li><b>凭据一套</b> —— 两条链路共用同一个应用与同一套令牌管理。旧的授权范围里没有表格权限，结构性写不了表。</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="gates">
+    <h2 class="sec-title">
+      <span class="sn">06</span>四道闸门
+      <span class="sd">写错了，在哪一关被拦下</span>
+    </h2>
+    <div class="gates">
+      {GATES.map(([name, where, what], i) => (
+        <div class="gate">
+          <div class="g-n">{String(i + 1).padStart(2, '0')}</div>
+          <div class="g-body">
+            <div class="g-head">
+              <span class="g-name">{name}</span>
+              <span class="g-where">{where}</span>
+            </div>
+            <p class="g-what">{what}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="d-note">
+      一条经验：<b>规则必须有代码对应，否则必然过期。</b>这个库的设计规范文档曾经落后实现两代 ——
+      因为它写完之后再没人执行过。现在的原则是：每一条写进规范的规则，都要有一个脚本能把它跑出来。
+    </p>
+  </section>
+
+  <section class="sec" id="debt">
+    <h2 class="sec-title">
+      <span class="sn">07</span>还没还的债
+      <span class="sd">正在长，所以有欠账</span>
+    </h2>
+    <p class="d-p">
+      上面写的是已经立住的部分。下面是已经知道、但还没动手的部分 —— 按优先级排，落在仓库的更新路径里：
+    </p>
+    <ul class="debt">
+      <li>
+        <span class="db-t">分类收敛</span>
+        <span class="db-b">目录树、category、dimension、granularity 等多套分类并行，且互相打架。需收敛成「目录树为唯一等级分类 + 最多一个标签维度」。</span>
+      </li>
+      <li>
+        <span class="db-t">关系图对账</span>
+        <span class="db-b">正文超链接图与 relations 声明图各成一套，仅重合约四分之三。需加一致性检查，并自动推导反向边。</span>
+      </li>
+      <li>
+        <span class="db-t">同步方向</span>
+        <span class="db-b">本地与数据层目前是只读快照，尚未定「谁在什么时候触发同步」。</span>
+      </li>
+      <li>
+        <span class="db-t">骨架补全</span>
+        <span class="db-b">部分词条先立了框架、来源与细节待补；是否集中补一轮需定。</span>
+      </li>
+    </ul>
+    <p class="d-note">
+      完整清单见仓库
+      <a href="https://github.com/TEXXXXTURE/ai-knowledge-base/blob/main/ROADMAP.md" target="_blank" rel="noopener">ROADMAP.md</a>
+      —— 那里按优先级和依赖关系排，不按心情排。
+    </p>
+  </section>
+
+  <div class="colophon">
+    <span>内容源头 <b>docs/ · Markdown + Git</b></span>
+    <span>数据层 <b>飞书 Base</b></span>
+    <span>前端 <b>Astro + Pagefind</b></span>
+  </div>
+
+  <Fragment slot="aside">
+    <div class="toc">
+      <div class="toc-title">本页提纲</div>
+      <a href="#pillars"><span class="n">01</span>四根柱子</a>
+      <a href="#map"><span class="n">02</span>结构图</a>
+      <a href="#layers"><span class="n">03</span>两种粒度</a>
+      <a href="#data"><span class="n">04</span>数据层</a>
+      <a href="#conn"><span class="n">05</span>连接统一</a>
+      <a href="#gates"><span class="n">06</span>四道闸门</a>
+      <a href="#debt"><span class="n">07</span>还没还的债</a>
+      <a class="toc-back" href={`${BASE}/`}>← 回到首页</a>
+    </div>
+  </Fragment>
+</BaseLayout>
+
+<style>
+  .sec {
+    scroll-margin-top: 80px;
+  }
+
+  /* ---- 四根柱子 ---- */
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--rule-2);
+    border: 1px solid var(--rule-2);
+  }
+  .pillar {
+    background: var(--paper);
+    padding: 16px 18px 18px;
+  }
+  .pillar .p-n {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+  }
+  .pillar .p-t {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 600;
+    margin-top: 7px;
+    line-height: 1.45;
+  }
+  .pillar .p-d {
+    font-size: 12.5px;
+    color: var(--ink-3);
+    line-height: 1.75;
+    margin: 6px 0 0;
+  }
+
+  /* ---- 结构图 ---- */
+  .dgram-wrap {
+    margin: 0 0 0.6rem;
+    padding: 20px 18px 16px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--paper-2);
+  }
+  .dgram {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .fig-cap {
+    margin: 16px 4px 0;
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: var(--ink-3);
+    border-top: 1px solid var(--rule);
+    padding-top: 12px;
+  }
+
+  /* ---- 通用段落 ---- */
+  .d-p {
+    font-size: 15.5px;
+    line-height: 1.95;
+    color: var(--ink-2);
+    margin: 0 0 1.4rem;
+  }
+  .d-p b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .d-note {
+    font-size: 13px;
+    line-height: 1.85;
+    color: var(--ink-3);
+    margin: 1.3rem 0 0;
+    padding-left: 14px;
+    border-left: 2px solid var(--rule);
+  }
+  .d-note b {
+    color: var(--ink-2);
+  }
+  .d-note a {
+    color: var(--accent);
+    border-bottom: 1px solid var(--accent);
+  }
+
+  /* ---- 两种粒度 ---- */
+  .twocol {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin: 1.4rem 0 0;
+  }
+  .twocol.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .tcard {
+    border: 1px solid var(--rule);
+    border-top: 2px solid var(--ink);
+    border-radius: 0 0 6px 6px;
+    padding: 14px 16px 16px;
+    background: var(--paper);
+  }
+  .tc-h {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .tc-b {
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: var(--ink-3);
+    margin: 0;
+  }
+  .tc-b b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ---- 数据层 callout ---- */
+  .callout {
+    margin: 1.6rem 0 0;
+    border-left: 2px solid var(--accent);
+    background: var(--accent-bg);
+    padding: 14px 18px 16px;
+    border-radius: 0 4px 4px 0;
+  }
+  .co-t {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 7px;
+  }
+  .co-b {
+    font-size: 13.5px;
+    line-height: 1.85;
+    color: var(--ink-2);
+    margin: 0;
+  }
+  .co-b b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ---- 对比表 ---- */
+  .cmp-wrap {
+    margin: 1.2rem 0 1.5rem;
+  }
+  .cmp-wrap table {
+    font-size: 13px;
+  }
+
+  /* ---- 三条原则 ---- */
+  .rules {
+    list-style: none;
+    padding: 0;
+    margin: 1.2rem 0 0;
+    border-top: 1px solid var(--rule);
+  }
+  .rules li {
+    border-bottom: 1px solid var(--rule-2);
+    padding: 11px 0 11px 22px;
+    position: relative;
+    font-size: 13.5px;
+    line-height: 1.8;
+    color: var(--ink-2);
+  }
+  .rules li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .rules b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ---- 四道闸门 ---- */
+  .gates {
+    display: grid;
+    gap: 1px;
+    background: var(--rule-2);
+    border: 1px solid var(--rule-2);
+  }
+  .gate {
+    display: flex;
+    gap: 14px;
+    background: var(--paper);
+    padding: 13px 16px;
+  }
+  .gate .g-n {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    flex: 0 0 22px;
+    padding-top: 3px;
+  }
+  .g-body {
+    min-width: 0;
+  }
+  .g-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .g-name {
+    font-family: var(--serif);
+    font-size: 15.5px;
+    font-weight: 600;
+  }
+  .g-where {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 1px 8px;
+  }
+  .g-what {
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: var(--ink-3);
+    margin: 5px 0 0;
+  }
+
+  /* ---- 债务清单 ---- */
+  .debt {
+    list-style: none;
+    padding: 0;
+    margin: 1.3rem 0 0;
+    border-top: 1px solid var(--rule);
+  }
+  .debt li {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rule-2);
+  }
+  .db-t {
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .db-b {
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: var(--ink-3);
+  }
+
+  @media (max-width: 900px) {
+    .pillars,
+    .twocol,
+    .twocol.three {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .debt li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+  }
+</style>
+
+<style is:global>
+  /* 结构图配色：全部走主题变量，亮暗自动跟随 */
+  .dgram .dg-line {
+    stroke: var(--ink-3);
+    stroke-width: 1.2;
+    fill: none;
+  }
+  .dgram .dg-rule {
+    stroke: var(--rule);
+    stroke-width: 1;
+    fill: none;
+  }
+  .dgram .dg-arw {
+    fill: var(--ink-3);
+  }
+  .dgram .dg-src {
+    fill: var(--ink);
+  }
+  .dgram .dg-src-t1 {
+    fill: var(--paper);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .dgram .dg-src-t2 {
+    fill: var(--paper);
+    opacity: 0.72;
+    font-family: var(--sans);
+    font-size: 11px;
+  }
+  .dgram .dg-box {
+    fill: var(--paper);
+    stroke: var(--rule);
+    stroke-width: 1;
+  }
+  .dgram .dg-hi {
+    fill: var(--accent-bg);
+    stroke: var(--accent);
+    stroke-width: 1.3;
+  }
+  .dgram .dg-t1 {
+    fill: var(--ink);
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .dgram .dg-hi-t1 {
+    fill: var(--accent);
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .dgram .dg-t2 {
+    fill: var(--ink-2);
+    font-family: var(--sans);
+    font-size: 11px;
+  }
+  .dgram .dg-t3 {
+    fill: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 10.5px;
+  }
+  .dgram .dg-cap {
+    fill: var(--ink-3);
+    font-family: var(--sans);
+    font-size: 11px;
+  }
+</style>

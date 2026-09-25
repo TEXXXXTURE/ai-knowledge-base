@@ -1,5 +1,10 @@
-# MkDocs 构建产物（由 GitHub Actions 生成，不提交）
+# MkDocs 构建产物（历史遗留，Astro 启用后可删）
 site/
+
+# Node / Astro
+node_modules/
+dist/
+.astro/
 
 # Python
 __pycache__/

@@ -1,0 +1,110 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { toolUrl, BASE } from '../lib/paths.mjs';
+
+const tools = (await getCollection('tools')).sort((a, b) =>
+  String(b.data.date ?? '').localeCompare(String(a.data.date ?? '')),
+);
+
+const host = (u: string) => {
+  try {
+    return new URL(u).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+};
+---
+
+<BaseLayout title="工具库" description="从视频与文章里挖出来的工具，一篇一篇拆透：它解决什么问题、怎么设计的、能借鉴什么。">
+  <div class="crumb"><a href={`${BASE}/`}>首页</a> / 工具库</div>
+
+  <h1 class="term">工具库</h1>
+  <p class="term-sub">
+    <span class="al">{tools.length} 篇拆解 · 每篇一个工具，附验证状态与推荐度</span>
+  </p>
+
+  <div class="tlist">
+    {tools.map((t) => (
+      <a class="titem" href={toolUrl(t.id)}>
+        <div class="titem-head">
+          <span class="titem-title">{t.data.title}</span>
+          <span class:list={['titem-badge', { ok: t.data.verified }]}>
+            {t.data.verified ? '已确认' : '待验证'}
+          </span>
+        </div>
+        <p class="titem-sum">{t.data.summary}</p>
+        <div class="titem-meta">
+          <span>{t.data.date || '—'}</span>
+          {t.data.rating ? <span>推荐 {t.data.rating}/5</span> : null}
+          {t.data.url ? <span>{host(t.data.url)}</span> : null}
+          {t.data.tags.length > 0 ? <span>{t.data.tags.join(' · ')}</span> : null}
+        </div>
+      </a>
+    ))}
+  </div>
+
+  <div class="colophon">
+    <span>数据来源 <b>工具情报官流水线</b></span>
+    <span>并入自 <b>tool-intel-wiki</b></span>
+  </div>
+</BaseLayout>
+
+<style>
+  .tlist {
+    display: grid;
+    gap: 12px;
+    margin: 20px 0 6px;
+  }
+  .titem {
+    display: block;
+    padding: 16px 18px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--paper-2);
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+  }
+  .titem:hover {
+    border-color: var(--accent);
+  }
+  .titem-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .titem-title {
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--ink);
+  }
+  .titem-badge {
+    margin-left: auto;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--ink-3);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 1px 8px;
+    white-space: nowrap;
+  }
+  .titem-badge.ok {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .titem-sum {
+    margin: 0 0 10px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--ink-2);
+  }
+  .titem-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+</style>

@@ -1,0 +1,142 @@
+---
+import { termUrl, catUrl, BASE } from '../lib/paths.mjs';
+import { getCollection } from 'astro:content';
+import type { GroupNode } from '../lib/tree';
+
+interface Props {
+  tree: GroupNode[];
+  activeId?: string;
+  termCount: number;
+}
+
+const { tree, activeId, termCount } = Astro.props;
+
+/** 词条树之外的另外两片内容域（并入自 tool-intel-wiki） */
+const toolCount = (await getCollection('tools')).length;
+const digestCount = (await getCollection('digests')).length;
+
+const activeGroup = activeId ? activeId.split('/')[0] : null;
+const activeSub = (() => {
+  if (!activeId) return null;
+  const seg = activeId.split('/');
+  return seg.length > 2 ? seg.slice(1, -1).join(' / ') : null;
+})();
+---
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">目录 · {termCount} 词条</div>
+
+  <div class="domains">
+    <a class="dlink" href={`${BASE}/tools/`}>
+      <span class="dn">工具库</span>
+      <span class="dc">{toolCount}</span>
+    </a>
+    <a class="dlink" href={`${BASE}/digests/`}>
+      <span class="dn">情报日报</span>
+      <span class="dc">{digestCount}</span>
+    </a>
+  </div>
+
+  <nav id="tree" aria-label="词条目录">
+    {tree.map((g) => (
+      <div class:list={['tgroup', { open: g.key === activeGroup }]} data-key={g.key}>
+        <div class="tgroup-head" role="button" tabindex="0" aria-expanded={g.key === activeGroup ? 'true' : 'false'}>
+          <span class="chev" aria-hidden="true">▶</span>
+          <span class="n">{g.num}</span>
+          <span class="l">{g.label}</span>
+          <span class="c">{g.count}</span>
+        </div>
+        <div class="tgroup-body">
+          <a class="tsub-link" href={catUrl(g.key)} style="display:block;padding:4px 18px 6px 38px;font-size:11.5px;font-family:var(--mono);color:var(--ink-3)">
+            进入本层 →
+          </a>
+
+          {g.terms.map((t) => (
+            <a
+              class:list={['tlink', { on: t.id === activeId }]}
+              data-key={t.id}
+              href={termUrl(t.id)}
+            >
+              <span class:list={['dot', { hot: t.maturity === 'hot' }]} aria-hidden="true"></span>
+              {t.term}
+            </a>
+          ))}
+
+          {g.subs.map((s) => (
+            <div class:list={['tsub', { open: s.name === activeSub }]} data-sub={`${g.key}/${s.name}`}>
+              <div class="tsub-head" role="button" tabindex="0" aria-expanded={s.name === activeSub ? 'true' : 'false'}>
+                <span class="chev" aria-hidden="true">▶</span>
+                {s.name}
+                <span style="margin-left:auto;font-family:var(--mono);font-size:10.5px">{s.terms.length}</span>
+              </div>
+              <div class="tsub-body">
+                {s.terms.map((t) => (
+                  <a
+                    class:list={['tlink', { on: t.id === activeId }]}
+                    data-key={t.id}
+                    href={termUrl(t.id)}
+                  >
+                    <span class:list={['dot', { hot: t.maturity === 'hot' }]} aria-hidden="true"></span>
+                    {t.term}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </nav>
+
+  <div class="about">
+    <a class="dlink" href={`${BASE}/design/`}>
+      <span class="dn">设计说明</span>
+      <span class="dc">DESIGN</span>
+    </a>
+    <a
+      class="dlink"
+      href="https://github.com/TEXXXXTURE/ai-knowledge-base/blob/main/ROADMAP.md"
+      target="_blank"
+      rel="noopener"
+    >
+      <span class="dn">更新路径</span>
+      <span class="dc">ROADMAP</span>
+    </a>
+  </div>
+</aside>
+
+<style>
+  .about {
+    display: grid;
+    gap: 3px;
+    padding: 10px;
+    margin-top: 10px;
+    border-top: 1px solid var(--rule);
+  }
+  .domains {
+    display: grid;
+    gap: 3px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .dlink {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12.5px;
+    color: var(--ink-2);
+  }
+  .dlink:hover {
+    background: var(--paper-3);
+    color: var(--ink);
+  }
+  .dc {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+  }
+</style>

@@ -1,0 +1,38 @@
+---
+import { BASE } from '../lib/paths.mjs';
+
+interface Props {
+  termCount: number;
+}
+const { termCount } = Astro.props;
+---
+
+<header class="topbar">
+  <a class="brand" href={`${BASE}/`}>
+    <span class="brand-mark">知</span>
+    <span>
+      <span class="brand-text">AI 知识库</span>
+      <span class="brand-sub">ai-knowledge-base</span>
+    </span>
+  </a>
+
+  <div class="search" data-base={BASE} data-count={termCount}>
+    <span class="glass" aria-hidden="true"></span>
+    <input
+      id="q"
+      type="search"
+      placeholder={`搜索 ${termCount} 个词条 · 英文名与别名都可以`}
+      autocomplete="off"
+      spellcheck="false"
+      aria-label="搜索词条"
+      aria-expanded="false"
+      aria-controls="results"
+    />
+    <div id="results" class="results" role="listbox" hidden></div>
+  </div>
+
+  <div class="tools">
+    <button id="themeBtn" type="button" title="切换明暗" aria-label="切换明暗">◐</button>
+    <a class="gh" href="https://github.com/TEXXXXTURE/ai-knowledge-base" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</header>

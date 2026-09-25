@@ -1,0 +1,181 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { buildTree, buildNameIndex, groupKeyOf, subgroupOf, groupLabel } from '../../lib/tree';
+import { termUrl, catUrl } from '../../lib/paths.mjs';
+
+export async function getStaticPaths() {
+  const terms = await getCollection('terms');
+  return terms.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'terms'>;
+}
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+
+const all = await getCollection('terms');
+const nameIndex = buildNameIndex(all);
+
+const groupKey = groupKeyOf(entry.id);
+const sub = subgroupOf(entry.id);
+
+const data = entry.data;
+const h2 = headings.filter((h) => h.depth === 2);
+
+/** 全站阅读顺序：分组 → 组内散条 → 各组子目录。上一页/下一页按它走。 */
+const order: string[] = [];
+for (const g of buildTree(all)) {
+  for (const t of g.terms) order.push(t.id);
+  for (const s of g.subs) for (const t of s.terms) order.push(t.id);
+}
+const pos = order.indexOf(entry.id);
+const prev = order[(pos - 1 + order.length) % order.length];
+const next = order[(pos + 1) % order.length];
+const byId = new Map(all.map((e) => [e.id, e]));
+
+const REL_LABEL: Record<string, string> = {
+  part_of: '属于',
+  applies_to: '应用于',
+  contrast: '对比',
+  evolved_from: '演化自',
+  similar_to: '类似',
+  prerequisite: '前置',
+  peer: '同级',
+};
+const REL_TONE: Record<string, string> = {
+  part_of: 't-up',
+  applies_to: 't-app',
+  prerequisite: 't-up',
+  evolved_from: 't-up',
+  contrast: 't-con',
+  similar_to: 't-con',
+  peer: 't-con',
+};
+
+const host = (u: string) => {
+  try {
+    return new URL(u).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+};
+
+const relations = data.relations.map((r) => ({
+  ...r,
+  label: REL_LABEL[r.type ?? ''] ?? r.type ?? '相关',
+  tone: REL_TONE[r.type ?? ''] ?? 't-con',
+  id: nameIndex.get(r.target),
+}));
+---
+
+<BaseLayout title={data.term} description={data.full_name || data.category} activeId={entry.id}>
+  <div class="crumb">
+    <a href={catUrl(groupKey)}>{groupLabel(groupKey)}</a>
+    {sub && <> / {sub}</>}
+    {' / '}
+    <span>{data.term}</span>
+  </div>
+
+  <h1 class="term">{data.term}</h1>
+
+  <p class="term-sub">
+    {data.full_name && data.full_name !== data.term && <span class="en">{data.full_name}</span>}
+    {data.aliases.length > 0 && <span class="al"> · {data.aliases.join(' / ')}</span>}
+  </p>
+
+  <dl class="meta">
+    <div><dt>分类</dt><dd>{data.category || '—'}</dd></div>
+    <div><dt>维度</dt><dd>{data.dimension || '—'}</dd></div>
+    <div><dt>粒度</dt><dd>{data.granularity || '—'}</dd></div>
+    <div>
+      <dt>成熟度</dt>
+      <dd>
+        <span class:list={['tag-mat', { hot: data.maturity === 'hot' }]}>
+          <i />{data.maturity === 'hot' ? '热词 · 未沉淀' : '稳定 · 已沉淀'}
+        </span>
+      </dd>
+    </div>
+    <div><dt>来源</dt><dd>{data.sources.length} 条</dd></div>
+    <div><dt>更新</dt><dd>{data.updated || '—'}</dd></div>
+  </dl>
+
+  <article class="prose">
+    <Content />
+  </article>
+
+  {relations.length > 0 && (
+    <section class="block">
+      <h3 class="block-title">关系 · 这张网上的其他节点</h3>
+      <div class="rel">
+        {relations.map((r) =>
+          r.id ? (
+            <a class:list={['rel-card', r.tone]} href={termUrl(r.id)}>
+              <span class="rel-type">{r.label}</span>
+              <span class="rel-target">{r.target}</span>
+              {r.note && <span class="rel-note">{r.note}</span>}
+            </a>
+          ) : (
+            <span class:list={['rel-card', r.tone]}>
+              <span class="rel-type">{r.label} · 目标词条不存在</span>
+              <span class="rel-target">{r.target}</span>
+              {r.note && <span class="rel-note">{r.note}</span>}
+            </span>
+          ),
+        )}
+      </div>
+    </section>
+  )}
+
+  <section class="block">
+    <h3 class="block-title">来源 · 无源不收录</h3>
+    {data.sources.length > 0 ? (
+      <ul class="src">
+        {data.sources.map((u) => (
+          <li>
+            <a href={u} target="_blank" rel="noopener">{u}</a>
+            <span class="host">{host(u)}</span>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <div class="no-src">⚠ 此词条无来源链接 —— 违反「无源不收录」强制规则</div>
+    )}
+  </section>
+
+  <div class="colophon">
+    <span>贡献者 <b>{data.contributors.join('、') || '—'}</b></span>
+    <span>修订 <b>{data.revisions}</b></span>
+    <span>创建 <b>{data.created || '—'}</b></span>
+    <span>状态 <b>{data.status || '—'}</b></span>
+  </div>
+
+  <div class="pager">
+    {prev && (
+      <a href={termUrl(prev)}>
+        <span class="pl">上一条</span>
+        <span class="pt">{byId.get(prev)?.data.term}</span>
+      </a>
+    )}
+    {next && (
+      <a class="right" href={termUrl(next)}>
+        <span class="pl">下一条</span>
+        <span class="pt">{byId.get(next)?.data.term}</span>
+      </a>
+    )}
+  </div>
+
+  {h2.length >= 2 && (
+    <nav slot="aside" class="toc" aria-label="本文提纲">
+      <div class="toc-title">本文提纲</div>
+      {h2.map((h, i) => (
+        <a href={`#${h.slug}`}>
+          <span class="n">{String(i + 1).padStart(2, '0')}</span>
+          {h.text}
+        </a>
+      ))}
+      <a class="toc-back" href="#view">↑ 回到顶部</a>
+    </nav>
+  )}
+</BaseLayout>

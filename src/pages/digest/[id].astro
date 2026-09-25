@@ -1,0 +1,82 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { digestUrl, BASE } from '../../lib/paths.mjs';
+
+export async function getStaticPaths() {
+  const digests = await getCollection('digests');
+  return digests.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'digests'>;
+}
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+const h2 = headings.filter((h) => h.depth === 2);
+
+const data = entry.data;
+
+const all = (await getCollection('digests')).sort((a, b) =>
+  String(b.data.date ?? '').localeCompare(String(a.data.date ?? '')),
+);
+const pos = all.findIndex((d) => d.id === entry.id);
+const prev = pos > 0 ? all[pos - 1] : null;
+const next = pos >= 0 && pos < all.length - 1 ? all[pos + 1] : null;
+---
+
+<BaseLayout title={data.title} description={data.summary}>
+  <div class="crumb">
+    <a href={`${BASE}/digests/`}>情报日报</a>
+    {' / '}
+    <span>{data.date || data.title}</span>
+  </div>
+
+  <h1 class="term" style="font-size:clamp(26px,3.2vw,34px)">{data.title}</h1>
+
+  {data.summary ? <p class="term-sub"><span class="al">{data.summary}</span></p> : null}
+
+  <dl class="meta">
+    <div><dt>类型</dt><dd>情报日报</dd></div>
+    <div><dt>日期</dt><dd>{data.date || '—'}</dd></div>
+    <div><dt>生成</dt><dd>{data.source || '—'}</dd></div>
+    <div><dt>验证</dt><dd>{data.verified ? '已确认' : '待验证'}</dd></div>
+  </dl>
+
+  <article class="prose">
+    <Content />
+  </article>
+
+  <div class="colophon">
+    <span>标签 <b>{data.tags.join('、') || '—'}</b></span>
+    <span>日期 <b>{data.date || '—'}</b></span>
+  </div>
+
+  <div class="pager">
+    {prev ? (
+      <a href={digestUrl(prev.id)}>
+        <span class="pl">上一期</span>
+        <span class="pt">{prev.data.date || prev.data.title}</span>
+      </a>
+    ) : null}
+    {next ? (
+      <a class="right" href={digestUrl(next.id)}>
+        <span class="pl">下一期</span>
+        <span class="pt">{next.data.date || next.data.title}</span>
+      </a>
+    ) : null}
+  </div>
+
+  {h2.length >= 2 ? (
+    <nav slot="aside" class="toc" aria-label="本期提纲">
+      <div class="toc-title">本期提纲</div>
+      {h2.map((h, i) => (
+        <a href={`#${h.slug}`}>
+          <span class="n">{String(i + 1).padStart(2, '0')}</span>
+          {h.text}
+        </a>
+      ))}
+      <a class="toc-back" href="#view">↑ 回到顶部</a>
+    </nav>
+  ) : null}
+</BaseLayout>

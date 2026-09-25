@@ -1,0 +1,39 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const docs = await getCollection('projectdocs');
+  return docs.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'projectdocs'>;
+}
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+const h2 = headings.filter((h) => h.depth === 2);
+
+const title =
+  typeof entry.data?.title === 'string' && entry.data.title ? entry.data.title : entry.id;
+---
+
+<BaseLayout title={title}>
+  <div class="crumb"><a href="/ai-knowledge-base/">首页</a> / 项目文档 / {entry.id}</div>
+
+  <h1 class="term" style="font-size:clamp(26px,3.2vw,34px)">{title}</h1>
+  <p class="term-sub"><span class="al">docs/项目文档/{entry.id}.md</span></p>
+
+  {h2.length >= 3 && (
+    <div class="outline">
+      <div class="ot">本文提纲</div>
+      {h2.map((h) => (
+        <a href={`#${h.slug}`}>{h.text}</a>
+      ))}
+    </div>
+  )}
+
+  <article class="prose">
+    <Content />
+  </article>
+</BaseLayout>

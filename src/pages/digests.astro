@@ -1,0 +1,91 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { digestUrl, BASE } from '../lib/paths.mjs';
+
+const digests = (await getCollection('digests')).sort((a, b) =>
+  String(b.data.date ?? '').localeCompare(String(a.data.date ?? '')),
+);
+---
+
+<BaseLayout title="情报日报" description="工具情报官流水线的每日产出：今天扫了什么、挖出哪些工具、哪些存疑。">
+  <div class="crumb"><a href={`${BASE}/`}>首页</a> / 情报日报</div>
+
+  <h1 class="term">情报日报</h1>
+  <p class="term-sub">
+    <span class="al">{digests.length} 期 · 扫社区、挖工具、标存疑，逐日累积</span>
+  </p>
+
+  <div class="timeline">
+    {digests.map((d) => (
+      <a class="trow" href={digestUrl(d.id)}>
+        <span class="tdate">{d.data.date || '—'}</span>
+        <span class="tbody">
+          <span class="ttitle">{d.data.title}</span>
+          <span class="tsum">{d.data.summary}</span>
+        </span>
+        <span class="tarrow" aria-hidden="true">→</span>
+      </a>
+    ))}
+  </div>
+
+  <div class="colophon">
+    <span>数据来源 <b>工具情报官流水线</b></span>
+    <span>并入自 <b>tool-intel-wiki</b></span>
+  </div>
+</BaseLayout>
+
+<style>
+  .timeline {
+    display: grid;
+    gap: 10px;
+    margin: 20px 0 6px;
+  }
+  .trow {
+    display: grid;
+    grid-template-columns: 96px 1fr 20px;
+    gap: 14px;
+    align-items: baseline;
+    padding: 14px 16px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--paper-2);
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+  }
+  .trow:hover {
+    border-color: var(--accent);
+  }
+  .tdate {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+  .tbody {
+    display: grid;
+    gap: 5px;
+  }
+  .ttitle {
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .tsum {
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+  .tarrow {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-3);
+    text-align: right;
+  }
+  @media (max-width: 560px) {
+    .trow {
+      grid-template-columns: 1fr 20px;
+    }
+    .tdate {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

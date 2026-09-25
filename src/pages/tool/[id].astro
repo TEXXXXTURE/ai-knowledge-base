@@ -1,0 +1,134 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { buildNameIndex } from '../../lib/tree';
+import { termUrl, toolUrl, BASE } from '../../lib/paths.mjs';
+
+export async function getStaticPaths() {
+  const tools = await getCollection('tools');
+  return tools.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'tools'>;
+}
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+const h2 = headings.filter((h) => h.depth === 2);
+
+const data = entry.data;
+
+/** 关联词条：名字能在词条库里找到就变成可点链接，找不到就标出来（不静默吞掉） */
+const allTerms = await getCollection('terms');
+const nameIndex = buildNameIndex(allTerms);
+const related = data.related.map((name) => ({ name, id: nameIndex.get(name) }));
+
+/** 上一个 / 下一个工具：按收录日期倒序 */
+const allTools = (await getCollection('tools')).sort((a, b) =>
+  String(b.data.date ?? '').localeCompare(String(a.data.date ?? '')),
+);
+const pos = allTools.findIndex((t) => t.id === entry.id);
+const prev = pos > 0 ? allTools[pos - 1] : null;
+const next = pos >= 0 && pos < allTools.length - 1 ? allTools[pos + 1] : null;
+
+const host = (u: string) => {
+  try {
+    return new URL(u).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+};
+
+const r = Math.max(0, Math.min(5, data.rating));
+const stars = r ? '★'.repeat(r) + '☆'.repeat(5 - r) : '';
+---
+
+<BaseLayout title={data.title} description={data.summary}>
+  <div class="crumb">
+    <a href={`${BASE}/tools/`}>工具库</a>
+    {' / '}
+    <span>{data.title}</span>
+  </div>
+
+  <h1 class="term" style="font-size:clamp(26px,3.2vw,34px)">{data.title}</h1>
+
+  {data.summary ? <p class="term-sub"><span class="al">{data.summary}</span></p> : null}
+
+  <dl class="meta">
+    <div><dt>类型</dt><dd>工具拆解</dd></div>
+    <div><dt>收录</dt><dd>{data.date || '—'}</dd></div>
+    <div><dt>验证</dt><dd>{data.verified ? '已确认' : '待验证'}</dd></div>
+    <div><dt>推荐</dt><dd>{stars ? `${stars} ${data.rating}/5` : '—'}</dd></div>
+    <div><dt>标签</dt><dd>{data.tags.join(' / ') || '—'}</dd></div>
+  </dl>
+
+  <article class="prose">
+    <Content />
+  </article>
+
+  {data.url ? (
+    <section class="block">
+      <h3 class="block-title">工具地址</h3>
+      <ul class="src">
+        <li>
+          <a href={data.url} target="_blank" rel="noopener">{data.url}</a>
+          <span class="host">{host(data.url)}</span>
+        </li>
+      </ul>
+    </section>
+  ) : null}
+
+  {related.length > 0 ? (
+    <section class="block">
+      <h3 class="block-title">关联词条 · 接进知识网</h3>
+      <div class="rel">
+        {related.map((item) =>
+          item.id ? (
+            <a class="rel-card t-app" href={termUrl(item.id)}>
+              <span class="rel-type">关联</span>
+              <span class="rel-target">{item.name}</span>
+            </a>
+          ) : (
+            <span class="rel-card t-con">
+              <span class="rel-type">关联 · 词条尚未建立</span>
+              <span class="rel-target">{item.name}</span>
+            </span>
+          ),
+        )}
+      </div>
+    </section>
+  ) : null}
+
+  <div class="colophon">
+    <span>来源 <b>{data.source || '—'}</b></span>
+    <span>收录 <b>{data.date || '—'}</b></span>
+  </div>
+
+  <div class="pager">
+    {prev ? (
+      <a href={toolUrl(prev.id)}>
+        <span class="pl">上一个工具</span>
+        <span class="pt">{prev.data.title}</span>
+      </a>
+    ) : null}
+    {next ? (
+      <a class="right" href={toolUrl(next.id)}>
+        <span class="pl">下一个工具</span>
+        <span class="pt">{next.data.title}</span>
+      </a>
+    ) : null}
+  </div>
+
+  {h2.length >= 2 ? (
+    <nav slot="aside" class="toc" aria-label="本文提纲">
+      <div class="toc-title">本文提纲</div>
+      {h2.map((h, i) => (
+        <a href={`#${h.slug}`}>
+          <span class="n">{String(i + 1).padStart(2, '0')}</span>
+          {h.text}
+        </a>
+      ))}
+      <a class="toc-back" href="#view">↑ 回到顶部</a>
+    </nav>
+  ) : null}
+</BaseLayout>

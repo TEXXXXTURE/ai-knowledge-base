@@ -1,0 +1,246 @@
+---
+import '../styles/global.css';
+import { BASE } from '../lib/paths.mjs';
+import { getCollection } from 'astro:content';
+import { buildTree } from '../lib/tree';
+import TopBar from '../components/TopBar.astro';
+import Sidebar from '../components/Sidebar.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  activeId?: string;
+}
+
+const { title, description, activeId } = Astro.props;
+
+// 只有词条页会填 aside（右侧提纲栏），其余页面保持两栏
+const hasAside = Astro.slots.has('aside');
+
+const entries = await getCollection('terms');
+const tree = buildTree(entries);
+const termCount = entries.length;
+
+const pageTitle = title ? `${title} · AI 知识库` : 'AI 知识库 · 一线知识的沉淀与导航站';
+const pageDesc =
+  description ?? '一线知识的沉淀与导航站。每个词条是一个节点，关系是边。';
+---
+
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-base={BASE}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDesc} />
+    <link rel="icon" type="image/svg+xml" href={`${BASE}/favicon.svg`} />
+    <meta name="generator" content={Astro.generator} />
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t !== 'dark' && t !== 'light') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+  </head>
+
+  <body>
+    <a class="skip" href="#view">跳到正文</a>
+
+    <TopBar termCount={termCount} />
+
+    <div class="shell" class:list={[{ 'has-aside': hasAside }]}>
+      <Sidebar tree={tree} activeId={activeId} termCount={termCount} />
+      <main class="main">
+        <div class="view" id="view" data-pagefind-body><slot /></div>
+        {hasAside && <aside class="rail"><slot name="aside" /></aside>}
+      </main>
+    </div>
+
+    <button class="drawer-btn" id="drawerBtn" type="button">目录</button>
+
+    <script>
+      const BASE_PATH = document.documentElement.dataset.base ?? '';
+
+      // 主题切换
+      const themeBtn = document.getElementById('themeBtn');
+      themeBtn?.addEventListener('click', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const next = isDark ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        try {
+          localStorage.setItem('theme', next);
+        } catch {}
+      });
+
+      // 侧栏折叠
+      const tree = document.getElementById('tree');
+      function toggle(el: Element | null) {
+        if (!el) return;
+        const open = el.classList.toggle('open');
+        el.querySelector<HTMLElement>('[role="button"]')?.setAttribute('aria-expanded', String(open));
+      }
+      tree?.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        const gh = target.closest('.tgroup-head');
+        if (gh) {
+          e.preventDefault();
+          toggle(gh.parentElement);
+          return;
+        }
+        const sh = target.closest('.tsub-head');
+        if (sh) {
+          e.preventDefault();
+          toggle(sh.parentElement);
+        }
+      });
+      tree?.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const target = e.target as HTMLElement;
+        if (target.matches('.tgroup-head, .tsub-head')) {
+          e.preventDefault();
+          toggle(target.parentElement);
+        }
+      });
+
+      // 当前词条滚进视野
+      const current = document.querySelector('.tlink.on');
+      if (current) {
+        const sb = document.getElementById('sidebar');
+        if (sb) {
+          const rect = current.getBoundingClientRect();
+          const box = sb.getBoundingClientRect();
+          if (rect.top < box.top || rect.bottom > box.bottom) {
+            sb.scrollTop += rect.top - box.top - box.height / 3;
+          }
+        }
+      }
+
+      // 移动端抽屉
+      const drawerBtn = document.getElementById('drawerBtn');
+      drawerBtn?.addEventListener('click', () => {
+        document.getElementById('sidebar')?.classList.toggle('open');
+      });
+
+      // ---------- 搜索 ----------
+      const box = document.querySelector('.search') as HTMLElement | null;
+      const input = document.getElementById('q') as HTMLInputElement | null;
+      const panel = document.getElementById('results');
+
+      type Row = { t: string; f: string; a: string[]; c: string; m: string; u: string };
+      let index: Row[] | null = null;
+      let loading = false;
+
+      async function ensureIndex(): Promise<Row[]> {
+        if (index) return index;
+        if (loading) return [];
+        loading = true;
+        const base = box?.dataset.base ?? '';
+        try {
+          const res = await fetch(`${base}/search-index.json`);
+          index = (await res.json()) as Row[];
+        } catch {
+          index = [];
+        }
+        loading = false;
+        return index ?? [];
+      }
+
+      const esc = (s: string) =>
+        s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+      function close() {
+        if (panel) {
+          panel.hidden = true;
+          panel.innerHTML = '';
+        }
+        input?.setAttribute('aria-expanded', 'false');
+      }
+
+      async function run() {
+        const v = input?.value.trim().toLowerCase() ?? '';
+        if (!v || !panel) return close();
+        const rows = await ensureIndex();
+        const base = box?.dataset.base ?? '';
+        const hits = rows
+          .filter((r) =>
+            `${r.t} ${r.f} ${r.a.join(' ')} ${r.c}`.toLowerCase().includes(v),
+          )
+          .slice(0, 14);
+
+        panel.innerHTML = hits.length
+          ? hits
+              .map(
+                (r) =>
+                  `<a href="${r.u}">` +
+                  `<span>${r.m === 'hot' ? '<span style="color:var(--accent)">◇</span> ' : ''}${esc(r.t)}</span>` +
+                  `<span class="rn">${esc(r.f)}</span>` +
+                  `<span class="rc">${esc(r.c)}</span></a>`,
+              )
+              .join('')
+          : `<a href="${base}/search/?q=${encodeURIComponent(v)}"><span>在正文中搜索「${esc(v)}」</span><span class="rc">全文</span></a>`;
+        panel.hidden = false;
+        input?.setAttribute('aria-expanded', 'true');
+      }
+
+      input?.addEventListener('input', run);
+      input?.addEventListener('focus', run);
+      input?.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          close();
+          input.blur();
+        }
+        if (e.key === 'Enter') {
+          const v = input.value.trim();
+          if (!v) return;
+          const base = box?.dataset.base ?? '';
+          location.href = `${base}/search/?q=${encodeURIComponent(v)}`;
+        }
+      });
+      document.addEventListener('click', (e) => {
+        if (!(e.target as HTMLElement).closest('.search')) close();
+      });
+      panel?.addEventListener('click', close);
+
+      // ---------- 右栏提纲：滚动高亮 ----------
+      const tocLinks = Array.from(
+        document.querySelectorAll<HTMLAnchorElement>('.toc a:not(.toc-back)[href^="#"]'),
+      );
+      if (tocLinks.length) {
+        const idOf = (a: HTMLAnchorElement) => decodeURIComponent(a.hash.slice(1));
+        const heads = tocLinks
+          .map((a) => document.getElementById(idOf(a)))
+          .filter((el): el is HTMLElement => el !== null);
+
+        const activate = (id: string) =>
+          tocLinks.forEach((a) => a.classList.toggle('on', idOf(a) === id));
+
+        const topOffset =
+          parseInt(
+            getComputedStyle(document.documentElement).getPropertyValue('--top') || '58',
+            10,
+          ) || 58;
+
+        const io = new IntersectionObserver(
+          () => {
+            // 不依赖变化事件，直接按当前位置判定：
+            // heads 是文档顺序，取最后一个「已越过判定线」的标题即为当前章节。
+            let current = heads[0]?.id ?? '';
+            for (const el of heads) {
+              if (el.getBoundingClientRect().top <= topOffset + 120) current = el.id;
+            }
+            if (current) activate(current);
+          },
+          { rootMargin: `-${topOffset}px 0px -55% 0px`, threshold: 0 },
+        );
+        heads.forEach((el) => io.observe(el));
+      }
+    </script>
+  </body>
+</html>

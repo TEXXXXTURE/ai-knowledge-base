@@ -1,0 +1,148 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { buildTree, buildNameIndex } from '../lib/tree';
+import { termUrl, catUrl, docUrl, BASE } from '../lib/paths.mjs';
+
+const entries = await getCollection('terms');
+const docs = await getCollection('projectdocs');
+const tools = await getCollection('tools');
+const digests = await getCollection('digests');
+const tree = buildTree(entries);
+const nameIndex = buildNameIndex(entries);
+
+const total = entries.length;
+const totalSources = entries.reduce((n, e) => n + e.data.sources.length, 0);
+const hot = entries.filter((e) => e.data.maturity === 'hot');
+const stable = total - hot.length;
+
+/** 在读路径上的 6 站，按名字找词条；找不到就自动跳过，不留死链 */
+const READING_PATH = [
+  ['神经网络', '理解一切的根：参数、梯度、反向传播'],
+  ['Transformer', '注意力机制 → 架构 → 一切大模型的底'],
+  ['扩散模型', '生成图像 / 视频的数学骨架'],
+  ['LoRA', '不动底模，只学变化量——最实用的微调'],
+  ['推理引擎', '把模型真正跑起来的那一层'],
+  ['Agent', '从一次问答到能自己干活的系统'],
+] as const;
+
+const path = READING_PATH.map(([name, desc], i) => {
+  const id = nameIndex.get(name);
+  return id ? { num: String(i + 1).padStart(2, '0'), name, desc, href: termUrl(id) } : null;
+}).filter((x): x is NonNullable<typeof x> => x !== null);
+
+/** 项目文档的说明文字，按文件名匹配；没写就留空 */
+const DOC_BLURB: Record<string, string> = {
+  'map': '全站网状入口：广义 AI 知识树 + 当前目录对应',
+  'PRD-人类版': '项目是什么、框架、进度',
+  'PRD-Agent版': '完整设计决策 + 技术细节 + 踩坑记录',
+  'CONTENT-SPEC': '词条长什么样、怎么写、怎么连线、怎么校验',
+  'CONTRIBUTING': '四层贡献模型：读者 / 贡献者 / 维护者 / 机器',
+  'MAINTENANCE': '审校 / 发布 / 雷达 / 升降级 / 回滚',
+  'DESIGN-SPEC': '项目设计决策的唯一事实源',
+};
+
+const docOrder = ['map', 'PRD-人类版', 'PRD-Agent版', 'CONTENT-SPEC', 'CONTRIBUTING', 'MAINTENANCE', 'DESIGN-SPEC'];
+const docList = docOrder
+  .map((name) => {
+    const d = docs.find((x) => x.id === name);
+    return d ? { id: d.id, name, blurb: DOC_BLURB[name] ?? '' } : null;
+  })
+  .filter((x): x is NonNullable<typeof x> => x !== null);
+---
+
+<BaseLayout>
+  <div class="kicker">第 01 期 · 沉淀层</div>
+  <h1 class="big">一线知识的<br />沉淀与导航站</h1>
+  <p class="lede">
+    每个词条是一个节点，关系是边。从根往下读是一条完整学习路径，从叶子跳入是速查。
+  </p>
+
+  <div class="stats">
+    <div><b>{total}</b><span>词条总数</span></div>
+    <div><b>{tree.length}</b><span>知识层级</span></div>
+    <div><b>{totalSources}</b><span>来源链接</span></div>
+    <div><b>{stable}<small> / {hot.length}</small></b><span>稳定 / 热词</span></div>
+  </div>
+
+  <section class="sec">
+    <h2 class="sec-title"><span class="sn">01</span>本期要目<span class="sd">点击进入各层</span></h2>
+    {tree.map((g) => {
+      const reps = [...g.terms, ...g.subs.flatMap((s) => s.terms)].slice(0, 3).map((t) => t.term);
+      return (
+        <div class="toc-item">
+          <a class="toc-row" href={catUrl(g.key)}>
+            <span class="n">{g.num}</span>
+            <span class="t">{g.label}</span>
+            <span class="lead" />
+            <span class="c">{g.count} 条</span>
+          </a>
+          <p class="toc-desc">{reps.join(' · ')} …</p>
+        </div>
+      );
+    })}
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-title">
+      <span class="sn">02</span>热词速览
+      <span class="sd">{hot.length} 条未经沉淀 · 先看先得</span>
+    </h2>
+    <div class="grid2">
+      {hot.slice(0, 12).map((e) => (
+        <a class="chip" href={termUrl(e.id)}>
+          <span class="ct">{e.data.term}</span>
+          <span class="cc">{e.data.category}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-title"><span class="sn">03</span>从哪里读起<span class="sd">一条从原理到落地的路径</span></h2>
+    <div class="path">
+      {path.map((p) => (
+        <a href={p.href}>
+          <span class="pn">{p.num}</span>
+          <span class="pt">{p.name}</span>
+          <span class="pd">{p.desc}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-title">
+      <span class="sn">04</span>工具情报
+      <span class="sd">{tools.length} 篇拆解 · {digests.length} 期日报</span>
+    </h2>
+    <ul class="docs">
+      <li>
+        <a href={`${BASE}/tools/`}>
+          <span class="dt">工具库</span>
+          <span class="dd">从视频与文章里挖出来的工具，一篇一篇拆透：解决什么问题、怎么设计的、能借鉴什么</span>
+        </a>
+      </li>
+      <li>
+        <a href={`${BASE}/digests/`}>
+          <span class="dt">情报日报</span>
+          <span class="dd">工具情报官流水线的每日产出：今天扫了什么、挖出哪些工具、哪些存疑</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-title"><span class="sn">05</span>项目文档</h2>
+    <ul class="docs">
+      {docList.map((d) => (
+        <li>
+          <a href={docUrl(d.id)}>
+            <span class="dt">{d.name}</span>
+            <span class="dd">{d.blurb}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>
