@@ -119,6 +119,12 @@ npm run preview   # 预览构建产物
 
 技术栈：Astro + Content Collections + Pagefind。部署走 GitHub Pages（见 `.github/workflows/deploy.yml`）。
 
+> **`package.json` 里那两个 `*-linux-x64-gnu` 可选依赖不要删。**
+> npm 写锁文件时会剪掉「非当前平台」的 optional dependencies（[npm/cli#4828](https://github.com/npm/cli/issues/4828)），
+> 于是在 Windows 上生成的 `package-lock.json` 不含 Linux 原生二进制，而 CI runner 是 Linux ——
+> `npm ci` 严格照锁文件安装，会缺 `@astrojs/compiler-binding-linux-x64-gnu` 与 `lightningcss-linux-x64-gnu` 而构建失败。
+> 登记成根级可选依赖后 npm 必须写进锁文件，Windows 本地则因 `os` 不匹配自动跳过（不占空间）。
+
 ---
 
 <a id="spec"></a>

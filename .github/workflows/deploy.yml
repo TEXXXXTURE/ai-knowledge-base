@@ -35,6 +35,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        # 注意：package.json 里的两个 *-linux-x64-gnu 可选依赖不是冗余，别删。
+        # npm 的锁文件会剪掉「非当前平台」的 optional dependencies（npm/cli#4828），
+        # 在 Windows 上生成的锁文件因此不含 Linux 原生二进制，
+        # 但 CI runner 是 Linux —— npm ci 严格照锁文件装，就会缺
+        # @astrojs/compiler-binding-linux-x64-gnu / lightningcss-linux-x64-gnu 而构建失败。
+        # 登记成根级可选依赖后 npm 必须写进锁文件；Windows 本地因 os 不匹配自动跳过。
 
       # astro build 产出 dist，pagefind 随后在其中建立全站搜索索引
       - name: Build site

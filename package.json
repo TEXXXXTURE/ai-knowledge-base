@@ -17,5 +17,9 @@
   },
   "devDependencies": {
     "pagefind": "^1.5.2"
+  },
+  "optionalDependencies": {
+    "@astrojs/compiler-binding-linux-x64-gnu": "0.4.1",
+    "lightningcss-linux-x64-gnu": "1.33.0"
   }
 }
