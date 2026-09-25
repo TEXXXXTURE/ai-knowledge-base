@@ -1,0 +1,42 @@
+name: Validate content schema
+
+# DESIGN-SPEC §7「质量门流水线」第 2 道：自动校验。
+# DESIGN-SPEC §8 目录结构里规划过这个文件，此前一直缺失。
+#
+# 与 deploy.yml 的分工：
+#   validate.yml —— 在 PR 上跑，给投稿者即时反馈，不部署
+#   deploy.yml   —— 在 push main 时再跑一遍，作为部署前的硬闸门
+# 两道都保留是有意的：只有 deploy 那道的话，投稿者要等到合并才知道错在哪。
+
+on:
+  pull_request:
+    paths:
+      - "docs/词条/**"
+      - "scripts/validate_content.py"
+      - ".github/workflows/validate.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/词条/**"
+      - "scripts/validate_content.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validator dependencies
+        run: python3 -m pip install --quiet pyyaml
+
+      - name: Run schema validation
+        run: python3 scripts/validate_content.py
