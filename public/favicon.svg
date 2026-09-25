@@ -1,11 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="AI 知识库">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img">
+  <title>星图 ASTERISM</title>
   <rect width="32" height="32" rx="7" fill="#9c3b1f"/>
-  <g stroke="#faf8f3" stroke-width="1.5" stroke-linecap="round" opacity="0.8">
-    <path d="M16 11.5 L10.5 20.5 M16 11.5 L22 17.5 M10.5 20.5 L22 17.5"/>
+  <g fill="none" stroke="#faf8f3" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" opacity="0.7">
+    <path d="M14.5 11 L9 19" />
+    <path d="M14.5 11 L22.5 16.5" />
+    <path d="M14.5 11 L20 6.5" />
   </g>
   <g fill="#faf8f3">
-    <circle cx="16" cy="11.2" r="3.2"/>
-    <circle cx="10.4" cy="20.8" r="2.5"/>
-    <circle cx="22.1" cy="17.6" r="2.5"/>
+    <circle cx="14.5" cy="11" r="3.4" />
+    <circle cx="9" cy="19" r="2.1" />
+    <circle cx="22.5" cy="16.5" r="2.1" />
+    <circle cx="20" cy="6.5" r="1.5" />
   </g>
 </svg>

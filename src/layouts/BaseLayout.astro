@@ -21,9 +21,10 @@ const entries = await getCollection('terms');
 const tree = buildTree(entries);
 const termCount = entries.length;
 
-const pageTitle = title ? `${title} · AI 知识库` : 'AI 知识库 · 一线知识的沉淀与导航站';
+const pageTitle = title ? `${title} · 星图` : '星图 ASTERISM · 一线知识的沉淀与导航站';
 const pageDesc =
-  description ?? '一线知识的沉淀与导航站。每个词条是一个节点，关系是边。';
+  description ??
+  '星图 ASTERISM —— 一线知识的沉淀与导航站。数据住在一张飞书表格里，不是数据库；每一条都经人工筛选，不是自动抓取。';
 ---
 
 <!doctype html>
