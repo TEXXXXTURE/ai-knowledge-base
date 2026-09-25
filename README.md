@@ -133,7 +133,7 @@ npm run preview   # 预览构建产物
 |---|---|---|
 | 类型 | `src/content.config.ts` | 字段类型与形状不对 → 构建失败 |
 | 语义 | `scripts/validate_content.py` | 词条名重复、关系边指向不存在的词条、published 缺来源、枚举非法 |
-| 链接 | `_prototype/check_dist_links.py` | 构建产物里的站内断链 |
+| 链接 | `scripts/check_dist_links.py` | 构建产物里的站内断链（需先 `npm run build`） |
 
 语义校验按 `status` 分级 —— published 必须有来源，draft 允许无来源。所以骨架词条可以先立框架，不会卡住 CI。
 

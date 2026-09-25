@@ -26,7 +26,7 @@ const PILLARS = [
 const GATES = [
   ['类型闸门', 'src/content.config.ts', '构建期。zod 校验字段类型与形状，形状不对直接构建失败。'],
   ['语义闸门', 'scripts/validate_content.py', 'CI 期。查词条名唯一、关系边可解析、published 必须有源、枚举合法。'],
-  ['链接闸门', '_prototype/check_dist_links.py', '构建后。扫全部产物 HTML，站内链接必须零断链。'],
+  ['链接闸门', 'scripts/check_dist_links.py', '构建后。扫全部产物 HTML，站内链接必须零断链。'],
   ['一致闸门', '飞书往返比对', '同步后。本地与数据层逐字段比对，确认零损耗。'],
 ] as const;
 
