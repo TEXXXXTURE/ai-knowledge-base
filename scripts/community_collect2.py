@@ -41,7 +41,7 @@ def reddit_search(sub, q, limit=6):
         out.append(f"- [{c.get('score',0)}分/{c.get('num_comments',0)}评] {c.get('title','')} https://reddit.com{c.get('permalink','')}")
     return out
 
-OUT = r"D:\AIGC术语库\雷达\采集"
+OUT = r"D:\AIGC术语库\采集\采集"
 os.makedirs(OUT, exist_ok=True)
 
 def save(name, content):

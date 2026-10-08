@@ -83,7 +83,7 @@
 | 静态生成 | MkDocs + Material 主题 | md 原生、目录结构自动生成侧边栏树（文件树=知识树）、内置搜索/暗色模式 |
 | 部署 | GitHub Pages + Actions | 零成本、push 即上线、CDN 全球加速 |
 | 内容 | Markdown + YAML frontmatter | GitHub 协作天然载体 |
-| 素材库 | `雷达/采集/`（1.35MB HF 课程 + 社区底料） | 内容不靠训练数据 |
+| 素材库 | `采集/采集/`（1.35MB HF 课程 + 社区底料） | 内容不靠训练数据 |
 | 生产 | Agent 协作（Hermes 编排 + Kimi/Claude Code） | 生产单是 Agent 无关的 |
 
 ### 3.2 目录结构（知识树物理实现）
@@ -145,7 +145,7 @@ git push origin main
 - 生产单是 Agent 无关的，Claude Code 可用 `claude -p "$(cat prompt)" --allowedTools "Read,Write,Edit,Glob,Grep" --max-turns 40` 顶替
 - Kimi 恢复后 hosts 方案已验证生效
 
-### 4.3 素材库（雷达/采集/）
+### 4.3 素材库（采集/采集/）
 
 | 目录 | 内容 | 大小 |
 |---|---|---|
@@ -177,15 +177,15 @@ git push origin main
 - [OK] strict 构建 0 警告 0 死链
 - [OK] 索引页 6 大类导航
 - ⏳ 骨架词条细节填充（22 条待补）
-- ⏳ 「文章与引用」栏目（MOKE 调研完成，见 `雷达/调研-MOKE文章引用栏目.md`）
-- ⏳ 雷达 cron 自动化
+- ⏳ 「文章与引用」栏目（MOKE 调研完成，见 `采集/调研-MOKE文章引用栏目.md`）
+- ⏳ 采集 cron 自动化
 - ⏳ 网络修复（整体依赖代理，hosts 临时方案已生效）
 
 ## 七、下一步建议（按优先级）
 
 1. **「文章与引用」栏目**：`docs/文章与引用/`（索引 + 聚合 + 引用库），模式 = MOKE 的「聚合摘要 + 判断线索 + 阅读索引」，引用挂到词条 relations
 2. **骨架细节填充**：优先 04-LLM工程 / 05-Agent工程（新方向）
-3. **雷达 cron**：定时扫 arXiv/GitHub/HF → 热词卡 → 雷达/ 目录
+3. **采集 cron**：定时扫 arXiv/GitHub/HF → 热词卡 → 采集/ 目录
 4. **网络修复根治**：整体依赖代理问题
 
 ## 八、给接手 Agent 的注意事项

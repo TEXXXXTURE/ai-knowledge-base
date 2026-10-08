@@ -1,6 +1,6 @@
 """社区采集脚本 — AIGC 术语知识库
 从 GitHub Issues/Discussions、Reddit、HuggingFace 讨论区抓取社区一线讨论，
-作为词条生产的参考素材。输出到 雷达/采集/ 目录。
+作为词条生产的参考素材。输出到 采集/采集/ 目录。
 """
 import urllib.request, urllib.parse, json, socket, time, os, sys
 
@@ -52,7 +52,7 @@ def reddit_search(sub, q, limit=6):
         })
     return out
 
-OUT = r"D:\AIGC术语库\雷达\采集"
+OUT = r"D:\AIGC术语库\采集\采集"
 os.makedirs(OUT, exist_ok=True)
 
 def save(name, content):

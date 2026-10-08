@@ -26,7 +26,7 @@ from datetime import datetime
 BASE = "https://www.mokeaigc.com"
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
-OUT_PATH = os.path.join(PROJ, "雷达", "采集表", "moke_articles.md")
+OUT_PATH = os.path.join(PROJ, "采集", "采集表", "moke_articles.md")
 CACHE_DIR = os.environ.get("MOKE_CACHE", r"C:\tmp")
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"

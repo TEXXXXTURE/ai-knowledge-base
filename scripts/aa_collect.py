@@ -3,7 +3,7 @@
 AA 模型数据采集脚本 — Artificial Analysis 数据更新
 
 用途: 抓取 artificialanalysis.ai/models 的 JSON-LD 结构化数据,
-      合并成按模型聚合的记录, 写入雷达/采集表/aa_models.md(机器可读 JSON)。
+      合并成按模型聚合的记录, 写入采集/采集表/aa_models.md(机器可读 JSON)。
       可选: 重新生成 docs/词条/04-LLM工程/模型数据总览.md 的表格。
 
 用法:
@@ -24,7 +24,7 @@ from datetime import date
 URL = "https://artificialanalysis.ai/models"
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
-COLLECT_PATH = os.path.join(PROJ, "雷达", "采集表", "aa_models.md")
+COLLECT_PATH = os.path.join(PROJ, "采集", "采集表", "aa_models.md")
 ENTRY_PATH = os.path.join(PROJ, "docs", "词条", "04-LLM工程", "模型数据总览.md")
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"

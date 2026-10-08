@@ -42,7 +42,7 @@ COURSES = ["llm-course", "context-course", "smol-course", "agents-course",
            "deep-rl-course", "audio-course", "cookbook", "ml-games-course",
            "computer-vision-course", "ml-for-3d-course", "robotics-course"]
 
-OUT = r"D:\AIGC术语库\雷达\采集\hf-courses"
+OUT = r"D:\AIGC术语库\采集\采集\hf-courses"
 os.makedirs(OUT, exist_ok=True)
 
 summary = []

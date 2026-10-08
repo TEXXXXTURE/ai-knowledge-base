@@ -20,4 +20,4 @@
 - 来源可验证（每个引用带原始 URL）
 - 与词条打通：引用条目关联到词条 relations，词条页「参见」出现引用
 - 状态流转：proposed → verified → approved → used（见采集表规范）
-- 数据采集：`scripts/moke_collect.py`（MOKE 日报 + 文章全文）→ `雷达/采集表/moke_articles.md`
+- 数据采集：`scripts/moke_collect.py`（MOKE 日报 + 文章全文）→ `采集/采集表/moke_articles.md`
